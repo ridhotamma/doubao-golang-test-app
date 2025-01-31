@@ -1,5 +1,5 @@
 # 使用官方的 Go 基础镜像
-FROM golang:1.21-alpine as builder
+FROM golang:1.23-alpine as builder
 
 # 设置工作目录
 WORKDIR /app
