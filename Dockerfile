@@ -1,14 +1,31 @@
-FROM golang:1.23-alpine
+# 使用官方的 Go 基础镜像
+FROM golang:1.23-alpine as builder
 
+# 设置工作目录
 WORKDIR /app
 
-COPY go.mod ./
-COPY go.sum ./
-RUN go mod download
+# 复制项目文件到工作目录
+COPY . .
 
-COPY . ./
-COPY wait-for-db.sh ./
+# 下载依赖
+RUN go mod tidy
 
-RUN go build -o /library-app
+# 构建可执行文件
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o main .
 
-CMD ["./wait-for-db.sh", "db:5432", "--", "/library-app"]
+# 使用轻量级的基础镜像
+FROM alpine:latest
+
+# 设置工作目录
+WORKDIR /app
+
+COPY .env .
+
+# 从 builder 阶段复制可执行文件
+COPY --from=builder /app/main .
+
+# 暴露应用程序的端口
+EXPOSE 8080
+
+# 运行应用程序
+CMD ["./main"]
