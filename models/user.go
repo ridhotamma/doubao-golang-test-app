@@ -10,7 +10,7 @@ type User struct {
 	Username      string `gorm:"not null;unique"`
 	Password      string `gorm:"not null"`
 	AuthorID      uint
-	AuthorProfile Author
+	AuthorProfile Author `gorm:"foreignKey:AuthorID;references:ID"`
 }
 
 // SetPassword 对用户密码进行哈希处理

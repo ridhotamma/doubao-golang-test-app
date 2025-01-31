@@ -20,7 +20,7 @@ func main() {
 		panic("Failed to connect to database")
 	}
 	// 自动迁移数据库表
-	database.DB.AutoMigrate(&models.Author{}, &models.Category{}, &models.Book{}, &models.User{})
+	database.DB.AutoMigrate(&models.User{}, &models.Author{}, &models.Category{}, &models.Book{})
 
 	// 调用种子数据初始化函数
 	database.SeedData()
