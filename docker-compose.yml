@@ -9,6 +9,7 @@ services:
         - DSN=${DSN}
         - SECRET_KEY=${SECRET_KEY}
         - GIN_MODE=release
+    command: ["./wait-for-db.sh", "db:5432", "--", "./your-app-binary"]
 
   db:
     image: postgres:15-alpine
@@ -20,6 +21,11 @@ services:
       - POSTGRES_DB=libraryapp
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ridhotamma -d libraryapp"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   pgdata:
