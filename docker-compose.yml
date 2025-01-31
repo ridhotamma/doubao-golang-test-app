@@ -6,7 +6,6 @@ services:
     depends_on:
       - db
     environment:
-      environment:
         - DSN=${DSN}
         - SECRET_KEY=${SECRET_KEY}
         - GIN_MODE=release
