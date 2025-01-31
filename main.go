@@ -22,11 +22,14 @@ func main() {
 	// 自动迁移数据库表
 	database.DB.AutoMigrate(&models.Author{}, &models.Category{}, &models.Book{}, &models.User{})
 
+	// 调用种子数据初始化函数
+	database.SeedData()
+
 	// 创建默认的 Gin 引擎
 	r := gin.Default()
 
 	// 无需身份验证的路由组
-	unprotected := r.Group("/")
+	unprotected := r.Group("/api")
 	{
 		// 用户登录路由，不需要身份验证
 		users := unprotected.Group("/users")
@@ -34,7 +37,7 @@ func main() {
 	}
 
 	// 需要身份验证的路由组
-	protected := r.Group("/")
+	protected := r.Group("/api")
 	// 应用 JWT 身份验证中间件
 	protected.Use(middlewares.AuthMiddleware())
 	{
