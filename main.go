@@ -22,9 +22,6 @@ func main() {
 	// 自动迁移数据库表
 	database.DB.AutoMigrate(&models.User{}, &models.Author{}, &models.Category{}, &models.Book{})
 
-	// 调用种子数据初始化函数
-	database.SeedData()
-
 	// 创建默认的 Gin 引擎
 	r := gin.Default()
 
