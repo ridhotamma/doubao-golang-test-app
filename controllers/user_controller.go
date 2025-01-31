@@ -101,58 +101,56 @@ func DeleteUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
 }
 
-// LoginUser 用户登录
+// LoginUser handles user login
 func LoginUser(c *gin.Context) {
-	var user models.User
-	if err := c.ShouldBindJSON(&user); err != nil {
+	var inputUser models.User
+	if err := c.ShouldBindJSON(&inputUser); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
+	// Fetch user from database
 	var storedUser models.User
-	if err := database.DB.Where("username = ?", user.Username).Preload("Author").First(&storedUser).Error; err != nil {
+	if err := database.DB.Where("username = ?", inputUser.Username).Preload("Author").First(&storedUser).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}
 
-	if !storedUser.CheckPassword(user.Password) {
+	// Check password
+	if !storedUser.CheckPassword(inputUser.Password) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid password"})
 		return
 	}
 
-	// 如果用户没有关联的作者，创建一个新的作者并关联到该用户
-	if storedUser.AuthorID == 0 {
-		author := models.Author{
+	// Create Author if not exists
+	if storedUser.Author.ID == 0 {
+		newAuthor := models.Author{
 			Name:   storedUser.Username,
 			UserID: storedUser.ID,
 		}
-		if err := database.DB.Create(&author).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		if err := database.DB.Create(&newAuthor).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create author"})
 			return
 		}
-		storedUser.AuthorID = author.ID
-		if err := database.DB.Save(&storedUser).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
+		storedUser.Author = newAuthor
 	}
 
-	// 创建JWT
-	claims := jwt.MapClaims{
+	// Generate JWT token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id":   storedUser.ID,
-		"author_id": storedUser.AuthorID,
+		"author_id": storedUser.Author.ID,
 		"exp":       time.Now().Add(24 * time.Hour).Unix(),
-	}
+	})
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	// Sign with secret from environment
 	tokenString, err := token.SignedString([]byte(os.Getenv("SECRET_KEY")))
-
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Login successful", "token": tokenString, "author_id": storedUser.AuthorID})
+	c.JSON(http.StatusOK, gin.H{
+		"message":   "Login successful",
+		"token":     tokenString,
+		"author_id": storedUser.Author.ID,
+	})
 }

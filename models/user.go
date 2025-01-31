@@ -7,13 +7,12 @@ import (
 
 type User struct {
 	gorm.Model
-	Username      string `gorm:"not null;unique"`
-	Password      string `gorm:"not null"`
-	AuthorID      uint
-	AuthorProfile Author `gorm:"foreignKey:AuthorID;references:ID"`
+	Username string `gorm:"not null;unique"`
+	Password string `gorm:"not null"`
+	Author   Author `gorm:"foreignKey:UserID"`
 }
 
-// SetPassword 对用户密码进行哈希处理
+// SetPassword hashes the user's password
 func (u *User) SetPassword(password string) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
@@ -23,7 +22,7 @@ func (u *User) SetPassword(password string) error {
 	return nil
 }
 
-// CheckPassword 验证用户输入的密码是否正确
+// CheckPassword verifies the user's password
 func (u *User) CheckPassword(password string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
 	return err == nil
