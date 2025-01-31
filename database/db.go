@@ -1,7 +1,6 @@
 package database
 
 import (
-	"github.com/ridhotamma/libraryapp/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -15,6 +14,5 @@ func ConnectDB() error {
 	if err != nil {
 		return err
 	}
-	DB.AutoMigrate(&models.Author{}, &models.Category{}, &models.Book{}, &models.User{})
 	return nil
 }

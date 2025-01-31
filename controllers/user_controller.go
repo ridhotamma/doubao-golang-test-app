@@ -3,7 +3,9 @@ package controllers
 import (
 	"net/http"
 	"strconv"
+	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/ridhotamma/libraryapp/database"
 	"github.com/ridhotamma/libraryapp/models"
@@ -107,7 +109,7 @@ func LoginUser(c *gin.Context) {
 	}
 
 	var storedUser models.User
-	if err := database.DB.Where("username = ?", user.Username).First(&storedUser).Error; err != nil {
+	if err := database.DB.Where("username = ?", user.Username).Preload("Author").First(&storedUser).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}
@@ -117,5 +119,36 @@ func LoginUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Login successful"})
+	// 如果用户没有关联的作者，创建一个新的作者并关联到该用户
+	if storedUser.AuthorID == 0 {
+		author := models.Author{
+			Name:   storedUser.Username,
+			UserID: storedUser.ID,
+		}
+		if err := database.DB.Create(&author).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		storedUser.AuthorID = author.ID
+		if err := database.DB.Save(&storedUser).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+	}
+
+	// 创建JWT
+	token := jwt.New(jwt.SigningMethodHS256)
+	claims := token.Claims.(jwt.MapClaims)
+	claims["user_id"] = storedUser.ID
+	claims["author_id"] = storedUser.AuthorID
+	claims["exp"] = time.Now().Add(time.Hour * 24).Unix() // 设置过期时间为24小时
+
+	// 生成JWT字符串
+	tokenString, err := token.SignedString([]byte("your_secret_key"))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Login successful", "token": tokenString, "author_id": storedUser.AuthorID})
 }

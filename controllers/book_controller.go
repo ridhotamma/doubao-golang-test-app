@@ -25,13 +25,29 @@ func GetBooks(c *gin.Context) {
 	c.JSON(http.StatusOK, books)
 }
 
-// CreateBook creates a new book
 func CreateBook(c *gin.Context) {
+	// 从请求头中获取用户ID
+	userId, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not logged in"})
+		return
+	}
+
+	var user models.User
+	if err := database.DB.Preload("Author").First(&user, userId).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
 	var book models.Book
 	if err := c.ShouldBindJSON(&book); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	// 将书籍关联到当前用户对应的作者
+	book.AuthorID = user.AuthorProfile.ID
+
 	if err := database.DB.Create(&book).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

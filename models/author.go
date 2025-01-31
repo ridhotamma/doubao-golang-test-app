@@ -6,6 +6,7 @@ import (
 
 type Author struct {
 	gorm.Model
-	Name  string `gorm:"not null"`
-	Books []Book
+	Name   string `gorm:"not null"`
+	UserID uint
+	Books  []Book
 }

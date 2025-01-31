@@ -7,8 +7,10 @@ import (
 
 type User struct {
 	gorm.Model
-	Username string `gorm:"not null;unique" json:"username"`
-	Password string `gorm:"not null" json:"-"`
+	Username      string `gorm:"not null;unique"`
+	Password      string `gorm:"not null"`
+	AuthorID      uint
+	AuthorProfile Author
 }
 
 // SetPassword 对用户密码进行哈希处理
