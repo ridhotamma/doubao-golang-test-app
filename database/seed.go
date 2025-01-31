@@ -8,10 +8,24 @@ import (
 
 // SeedData 初始化种子数据
 func SeedData() {
+	// 初始化作者数据
+	authors := []models.Author{
+		{Name: "Author 1"},
+		{Name: "Author 2"},
+	}
+	var createdAuthors []models.Author
+	for _, author := range authors {
+		if err := DB.Create(&author).Error; err != nil {
+			log.Printf("Failed to create author: %v", err)
+			continue
+		}
+		createdAuthors = append(createdAuthors, author)
+	}
+
 	// 初始化用户数据
 	users := []models.User{
-		{Username: "admin", Password: "admin123"},
-		{Username: "user", Password: "user123"},
+		{Username: "admin", Password: "admin123", AuthorID: createdAuthors[0].ID},
+		{Username: "user", Password: "user123", AuthorID: createdAuthors[1].ID},
 	}
 	var createdUsers []models.User
 	for _, user := range users {
@@ -31,19 +45,6 @@ func SeedData() {
 			continue
 		}
 		createdUsers = append(createdUsers, user)
-	}
-
-	// 初始化作者数据
-	if len(createdUsers) > 0 {
-		authors := []models.Author{
-			{Name: "Author 1", UserID: createdUsers[0].ID},
-			{Name: "Author 2", UserID: createdUsers[1].ID},
-		}
-		for _, author := range authors {
-			if err := DB.Create(&author).Error; err != nil {
-				log.Printf("Failed to create author: %v", err)
-			}
-		}
 	}
 
 	// 初始化分类数据
