@@ -19,6 +19,8 @@ FROM alpine:latest
 # 设置工作目录
 WORKDIR /app
 
+COPY .env .
+
 # 从 builder 阶段复制可执行文件
 COPY --from=builder /app/main .
 
