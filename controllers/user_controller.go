@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/ridhotamma/libraryapp/database"
 	"github.com/ridhotamma/libraryapp/models"
 )
@@ -138,12 +138,15 @@ func LoginUser(c *gin.Context) {
 	}
 
 	// 创建JWT
-	token := jwt.New(jwt.SigningMethodHS256)
-	claims := token.Claims.(jwt.MapClaims)
-	claims["user_id"] = storedUser.ID
-	claims["author_id"] = storedUser.AuthorID
-	claims["exp"] = time.Now().Add(time.Hour * 24).Unix() // 设置过期时间为24小时
+	claims := jwt.MapClaims{
+		"user_id":   storedUser.ID,
+		"author_id": storedUser.AuthorID,
+		"exp":       time.Now().Add(24 * time.Hour).Unix(),
+	}
 
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	// Sign with secret from environment
 	tokenString, err := token.SignedString([]byte(os.Getenv("SECRET_KEY")))
 
 	if err != nil {
