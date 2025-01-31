@@ -2,14 +2,11 @@ package middlewares
 
 import (
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
 )
-
-// SecretKey 用于签名和验证 JWT 令牌
-// 在实际应用中，应将其安全存储，例如存储在环境变量中
-var SecretKey = []byte("your-secret-key")
 
 // AuthMiddleware 是 JWT 身份验证中间件
 func AuthMiddleware() gin.HandlerFunc {
@@ -30,13 +27,16 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 		tokenString = tokenString[7:]
 
+		// 从环境变量获取密钥
+		secretKey := []byte(os.Getenv("SECRET_KEY")) // 新增
+
 		// 解析并验证 JWT 令牌
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 			// 检查签名方法
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, jwt.ErrSignatureInvalid
 			}
-			return SecretKey, nil
+			return secretKey, nil
 		})
 
 		if err != nil {

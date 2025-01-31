@@ -6,7 +6,10 @@ services:
     depends_on:
       - db
     environment:
-      - DSN=host=db user=ridhotamma password=secret dbname=libraryapp port=5432 sslmode=disable TimeZone=Asia/Shanghai
+      environment:
+        - DSN=${DSN}
+        - SECRET_KEY=${SECRET_KEY}
+        - GIN_MODE=release
 
   db:
     image: postgres:15-alpine

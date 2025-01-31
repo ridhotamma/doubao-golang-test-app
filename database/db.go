@@ -1,6 +1,8 @@
 package database
 
 import (
+	"os"
+
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -8,7 +10,7 @@ import (
 var DB *gorm.DB
 
 func ConnectDB() error {
-	dsn := "host=localhost user=ridhotamma password=secret dbname=libraryapp port=5432 sslmode=disable TimeZone=Asia/Shanghai"
+	dsn := os.Getenv("DSN") // 修改这里
 	var err error
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {

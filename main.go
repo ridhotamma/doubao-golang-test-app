@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"github.com/ridhotamma/libraryapp/controllers"
 	"github.com/ridhotamma/libraryapp/database"
 	"github.com/ridhotamma/libraryapp/middlewares"
@@ -9,6 +10,11 @@ import (
 )
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		panic("Error loading .env file")
+	}
+
 	// 连接数据库
 	if err := database.ConnectDB(); err != nil {
 		panic("Failed to connect to database")

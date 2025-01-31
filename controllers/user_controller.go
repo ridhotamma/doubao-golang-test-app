@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -143,8 +144,8 @@ func LoginUser(c *gin.Context) {
 	claims["author_id"] = storedUser.AuthorID
 	claims["exp"] = time.Now().Add(time.Hour * 24).Unix() // 设置过期时间为24小时
 
-	// 生成JWT字符串
-	tokenString, err := token.SignedString([]byte("your_secret_key"))
+	tokenString, err := token.SignedString([]byte(os.Getenv("SECRET_KEY")))
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
