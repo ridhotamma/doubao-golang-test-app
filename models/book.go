@@ -8,7 +8,7 @@ type Book struct {
 	gorm.Model
 	Title      string `gorm:"not null"`
 	AuthorID   uint
-	Author     Author
+	Author     Author `gorm:"foreignKey:AuthorID"`
 	CategoryID uint
-	Category   Category
+	Category   Category `gorm:"foreignKey:CategoryID"`
 }
